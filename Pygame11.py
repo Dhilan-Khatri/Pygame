@@ -86,31 +86,31 @@ while running:
                 fireBullet(bulletX,bulletY)
         if event.type==pygame.KEYUP and event.key in[pygame.K_LEFT,pygame.K_RIGHT]:
             playerXChange=0
-        playerX+=playerXChange
-        playerX=max(0,min(playerX,screenWidth-64))
-        for i in range(enemyNumber):
-            if enemyY[i]>340:
-                for j in range(enemyNumber):
-                    enemyY[j]=2000
-                gameoverText()
-                break
-            enemyX[i]+=enemyXChange[i]
-            if enemyX[i]<=0 or enemyX[i]>= screenWidth-64:
-                enemyXChange[i]*=-1
-                enemyY[i]+=enemyYChange[i]
-            if bulletColison(enemyX[i], enemyY[i], bulletX, bulletY):
-                bulletY=playerStartY
-                bulletState="Ready"
-                scoreValue+=1
-                enemyX[i]=random.randint(0,screenWidth-64)
-                enemyY[i]=random.randint(enemyStartYMin, enemyStartYMax)
-            enemy(enemyX[i], enemyY[i], i)
-        if bulletY<=0: 
+    playerX+=playerXChange
+    playerX=max(0,min(playerX,screenWidth-64))
+    for i in range(enemyNumber):
+        if enemyY[i]>340:
+            for j in range(enemyNumber):
+                enemyY[j]=2000
+            gameoverText()
+            break
+        enemyX[i]+=enemyXChange[i]
+        if enemyX[i]<=0 or enemyX[i]>= screenWidth-64:
+            enemyXChange[i]*=-1
+            enemyY[i]+=enemyYChange[i]
+        if bulletColison(enemyX[i], enemyY[i], bulletX, bulletY):
             bulletY=playerStartY
             bulletState="Ready"
-        elif bulletState=="Fire":
-            fireBullet(bulletX, bulletY)
-            bulletY-=bulletYChange
-        player(playerX,playerY)
-        showScore(txtX,txtY)
-        pygame.display.update()
+            scoreValue+=1
+            enemyX[i]=random.randint(0,screenWidth-64)
+            enemyY[i]=random.randint(enemyStartYMin, enemyStartYMax)
+        enemy(enemyX[i], enemyY[i], i)
+    if bulletY<=0: 
+        bulletY=playerStartY
+        bulletState="Ready"
+    elif bulletState=="Fire":
+        fireBullet(bulletX, bulletY)
+        bulletY-=bulletYChange
+    player(playerX,playerY)
+    showScore(txtX,txtY)
+    pygame.display.update()
