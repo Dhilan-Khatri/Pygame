@@ -1,6 +1,7 @@
 import random
 import pygame
 import math
+import array
 
 screenWidth=800
 screenHeight=500
@@ -11,14 +12,30 @@ enemyStartYMax=150
 enemySpeedX=4
 enemySpeedY=40
 bulletSpeed=10
-collsionDistance=27
+collsionDistance = 27
 
+pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 screen=pygame.display.set_mode((screenWidth,screenHeight))
 background=pygame.image.load("background.png")
 pygame.display.set_caption("Space Invader")
 icon=pygame.image.load("ufo.png")
 pygame.display.set_icon(icon)
+
+def make_sound(frequency, duration):
+    sample_rate = 44100
+    n_samples = int(sample_rate * duration)
+    buf = array.array("h")
+
+    for i in range(n_samples):
+        t = i / sample_rate
+        buf.append(int(32767 * math.sin(2 * math.pi * frequency * t)))
+
+    return pygame.mixer.Sound(buffer=buf)
+
+laserSound = make_sound(800, 0.1)       
+explosionSound = make_sound(200, 0.2)   
+
 
 playerImage=pygame.image.load("player.png")
 playerX=playerStartX
@@ -66,8 +83,15 @@ def fireBullet(x,y):
     bulletState="Fire"
     screen.blit(bulletImage,(x+16,y+10))
 def bulletColison(enemyX, enemyY, bulletX, bulletY):
-    distance = math.sqrt((enemyX - bulletX) ** 2 + (enemyY - bulletY) ** 2)
-    return distance<collsionDistance
+    enemy_center_x = enemyX + 32
+    enemy_center_y = enemyY + 32
+    bullet_center_x = bulletX
+    bullet_center_y = bulletY
+    distance = math.sqrt(
+        (enemy_center_x - bullet_center_x) ** 2 +
+        (enemy_center_y - bullet_center_y) ** 2)
+    return distance < collsionDistance
+
 
 running=True
 while running:
@@ -81,9 +105,10 @@ while running:
                 playerXChange=-5
             if event.key==pygame.K_RIGHT:
                 playerXChange=5
-            if event.key==pygame.K_SPACE and bulletState=="Ready":
-                bulletX=playerX
-                fireBullet(bulletX,bulletY)
+            if event.key == pygame.K_SPACE and bulletState == "Ready":
+                bulletX = playerX
+                fireBullet(bulletX, bulletY)
+                laserSound.play()
         if event.type==pygame.KEYUP and event.key in[pygame.K_LEFT,pygame.K_RIGHT]:
             playerXChange=0
     playerX+=playerXChange
@@ -98,12 +123,14 @@ while running:
         if enemyX[i]<=0 or enemyX[i]>= screenWidth-64:
             enemyXChange[i]*=-1
             enemyY[i]+=enemyYChange[i]
-        if bulletColison(enemyX[i], enemyY[i], bulletX, bulletY):
-            bulletY=playerStartY
-            bulletState="Ready"
-            scoreValue+=1
-            enemyX[i]=random.randint(0,screenWidth-64)
-            enemyY[i]=random.randint(enemyStartYMin, enemyStartYMax)
+        if bulletColison(enemyX[i], enemyY[i], bulletX + 16, bulletY + 10):
+            bulletY = playerStartY
+            bulletState = "Ready"
+            scoreValue += 1
+            enemyX[i] = random.randint(0, screenWidth - 64)
+            enemyY[i] = random.randint(enemyStartYMin, enemyStartYMax)
+            explosionSound.play()
+
         enemy(enemyX[i], enemyY[i], i)
     if bulletY<=0: 
         bulletY=playerStartY
